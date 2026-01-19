@@ -1,7 +1,5 @@
 ﻿using CompanyProject.Infrastructure.Data;
 
-namespace CompanyProject.Application.Interfaces
-{
     public interface IUserRepository
     {
         Task AddAsync(ApplicationUser user ,string password,string role);           // Create User
