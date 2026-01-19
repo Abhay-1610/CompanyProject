@@ -1,15 +1,17 @@
-﻿using CompanyProject.Infrastructure.Data;
+﻿using CompanyProject.Application.Interfaces;
 
-    public interface IUserRepository
-    {
-        Task AddAsync(ApplicationUser user ,string password,string role);           // Create User
+public interface IUserRepository
+{
+    Task AddAsync(string email, string password, int companyId, string role);
 
-        Task<ApplicationUser?> GetByIdAsync(string userId); // Get User By Id
+    Task<UserDto?> GetByIdAsync(string userId);
 
-        Task<List<ApplicationUser>> GetByCompanyIdAsync(int companyId); // Get Users of a Company
+    Task<List<UserDto>> GetByCompanyIdAsync(int companyId);
 
-        Task UpdateAsync(ApplicationUser user);         // Update User
+    Task UpdateAsync(string userId, string email);
 
-        Task DeleteAsync(ApplicationUser user);         // Delete User
-    }
+    Task DeleteAsync(string userId);
+
+    Task BlockAsync(string userId);
+    Task UnblockAsync(string userId);
 }

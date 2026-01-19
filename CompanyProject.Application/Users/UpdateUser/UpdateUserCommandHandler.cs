@@ -17,15 +17,9 @@ namespace CompanyProject.Application.Users.UpdateUser
             UpdateUserCommand request,
             CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId);
-
-            if (user == null)
-                throw new Exception("User not found");
-
-            user.Email = request.Email;
-            user.UserName = request.Email;
-
-            await _userRepository.UpdateAsync(user);
+            await _userRepository.UpdateAsync(
+                request.UserId,
+                request.Email);
         }
     }
 }

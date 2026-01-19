@@ -1,12 +1,11 @@
 ﻿using CompanyProject.Application.Interfaces;
-using CompanyProject.Domain.Entities;
-using CompanyProject.Infrastructure.Data;
 using MediatR;
+using System.Collections.Generic;
 
 namespace CompanyProject.Application.Users.GetUsers
 {
     public class GetUsersQueryHandler
-        : IRequestHandler<GetUsersQuery, List<ApplicationUser>>
+        : IRequestHandler<GetUsersQuery, List<UserDto>>
     {
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUser _currentUser;
@@ -19,7 +18,7 @@ namespace CompanyProject.Application.Users.GetUsers
             _currentUser = currentUser;
         }
 
-        public async Task<List<ApplicationUser>> Handle(
+        public async Task<List<UserDto>> Handle(
             GetUsersQuery request,
             CancellationToken cancellationToken)
         {

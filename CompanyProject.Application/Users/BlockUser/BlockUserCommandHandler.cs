@@ -17,16 +17,14 @@ namespace CompanyProject.Application.Users.BlockUser
             BlockUserCommand request,
             CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId);
-
-            if (user == null)
-                throw new Exception("User not found");
-
-            
-            user.LockoutEnabled = true;
-            user.LockoutEnd = request.IsBlocked ? DateTimeOffset.MaxValue: null;  
-
-            await _userRepository.UpdateAsync(user);
+            if (request.IsBlocked)
+            {
+                await _userRepository.BlockAsync(request.UserId);
+            }
+            else
+            {
+                await _userRepository.UnblockAsync(request.UserId);
+            }
         }
     }
 }

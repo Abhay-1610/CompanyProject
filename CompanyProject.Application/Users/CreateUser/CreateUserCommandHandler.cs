@@ -1,6 +1,5 @@
 ﻿using CompanyProject.Application.Interfaces;
-using CompanyProject.Domain.Entities;
-using CompanyProject.Infrastructure.Data;
+
 using MediatR;
 
 namespace CompanyProject.Application.Users.CreateUser
@@ -26,16 +25,15 @@ namespace CompanyProject.Application.Users.CreateUser
             // Only SuperAdmin can create Company Admin
             // Company Admin can create Company Users (handled by role checks later)
 
-            var user = new ApplicationUser
-            {
-                UserName = request.Email,
-                Email = request.Email,
-                CompanyId = request.CompanyId
-            };
+            await _userRepository.AddAsync(
+                request.Email,
+                request.Password,
+                request.CompanyId ?? 0,
+                request.Role
+);
 
-            await _userRepository.AddAsync(user, request.Password, request.Role);
+            return request.Email;
 
-            return user.Id; // Identity generates this
         }
     }
 }

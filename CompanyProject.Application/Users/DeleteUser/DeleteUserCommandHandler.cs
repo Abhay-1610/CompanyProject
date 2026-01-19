@@ -17,12 +17,7 @@ namespace CompanyProject.Application.Users.DeleteUser
             DeleteUserCommand request,
             CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId);
-
-            if (user == null)
-                throw new Exception("User not found");
-
-            await _userRepository.DeleteAsync(user);
+            await _userRepository.DeleteAsync(request.UserId);
         }
     }
 }
