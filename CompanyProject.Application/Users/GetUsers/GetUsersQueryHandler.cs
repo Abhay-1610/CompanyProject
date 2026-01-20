@@ -22,8 +22,19 @@ namespace CompanyProject.Application.Users.GetUsers
             GetUsersQuery request,
             CancellationToken cancellationToken)
         {
+            // 🔓 SuperAdmin → company comes from request
+            if (_currentUser.IsSuperAdmin)
+            {
+                return await _userRepository.GetByCompanyIdAsync(request.CompanyId.Value);
+            }
+
+            // 🔒 CompanyAdmin → company comes from token
+            var companyId = _currentUser.CompanyId
+                ?? throw new UnauthorizedAccessException();
+
             return await _userRepository
-                .GetByCompanyIdAsync(_currentUser.CompanyId);
+                .GetByCompanyIdAsync(companyId);
         }
     }
 }
+ 

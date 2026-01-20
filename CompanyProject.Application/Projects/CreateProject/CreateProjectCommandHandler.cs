@@ -34,7 +34,7 @@ namespace CompanyProject.Application.Projects.CreateProject
             {
                 ProjectName = request.ProjectName,
                 Description = request.Description,
-                CompanyId = _currentUser.CompanyId,
+                CompanyId = _currentUser.CompanyId ?? throw new UnauthorizedAccessException(),
                 Status = "InProgress",
                 IsActive = true,
                 StartDate = request.StartDate,

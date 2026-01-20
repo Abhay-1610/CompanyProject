@@ -1,5 +1,4 @@
 ﻿using CompanyProject.Application.Interfaces;
-
 using MediatR;
 
 namespace CompanyProject.Application.Users.CreateUser
@@ -22,18 +21,34 @@ namespace CompanyProject.Application.Users.CreateUser
             CreateUserCommand request,
             CancellationToken cancellationToken)
         {
-            // Only SuperAdmin can create Company Admin
-            // Company Admin can create Company Users (handled by role checks later)
+            // 🔒 SuperAdmin → can create ONLY CompanyAdmin
+            if (_currentUser.IsSuperAdmin)
+            {
+                await _userRepository.AddAsync(
+                    request.Email,
+                    request.Password,
+                    request.CompanyId.Value,
+                    request.Role
+                );
+
+                return request.Email;
+            }
+
+            // 🔒 CompanyAdmin → can create ONLY normal users (same company)
+            if (request.Role != "CompanyUser")
+                throw new UnauthorizedAccessException();
+
+            var companyId = _currentUser.CompanyId
+                ?? throw new UnauthorizedAccessException();
 
             await _userRepository.AddAsync(
                 request.Email,
                 request.Password,
-                request.CompanyId ?? 0,
+                companyId,
                 request.Role
-);
+            );
 
             return request.Email;
-
         }
     }
 }

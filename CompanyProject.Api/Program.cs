@@ -1,3 +1,4 @@
+﻿using CompanyProject.Api.Login.Auth;
 using CompanyProject.Application;
 using CompanyProject.Infrastructure;
 using CompanyProject.Infrastructure.Data;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +30,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 // MediatR
-builder.Services.AddMediatR(cfg =>cfg.RegisterServicesFromAssembly(typeof(AssemblyReference).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyReference).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginCommandHandler).Assembly));
 
 
 // Infrastructure (Repositories + SignalR Notifier)
@@ -38,6 +41,7 @@ builder.Services.AddInfrastructure();
 // SignalR
 builder.Services.AddSignalR();
 
+//*******************************************************************************************************
 // =======================
 // JWT Authentication
 // =======================
@@ -50,20 +54,18 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!)
-        )
+        ),
+
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        ValidateIssuer = false,
+        ValidateAudience = false
     };
 
-    // ?? Required for SignalR (token via query string)
+    // ✅ Required for SignalR (JWT via query string)
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -80,6 +82,7 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+//*******************************************************************************************************
 
 builder.Services.AddValidatorsFromAssembly(         // for fluent validation 
     typeof(AssemblyReference).Assembly
@@ -88,6 +91,35 @@ builder.Services.AddValidatorsFromAssembly(         // for fluent validation
 builder.Services.AddScoped<RoleSeeder>();              // added once for role Seeding
 
 
+//*******************************************************************************************************
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token as: Bearer {your token}"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 //*******************************************************************************************************
 
 var app = builder.Build();

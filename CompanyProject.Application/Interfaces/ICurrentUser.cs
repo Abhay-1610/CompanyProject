@@ -4,8 +4,12 @@
     public interface ICurrentUser
     {
         string UserId { get; }
-        int CompanyId { get; }
+
+        // null => SuperAdmin (not company-scoped)
+        int? CompanyId { get; }
+
         string Role { get; }
-        bool IsBlocked { get; }
+
+        bool IsSuperAdmin { get; }
     }
 }

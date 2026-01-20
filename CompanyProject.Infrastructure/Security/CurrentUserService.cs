@@ -18,25 +18,22 @@ namespace CompanyProject.Infrastructure.Security
             get
             {
                 var user = _httpContextAccessor.HttpContext?.User;
-
                 if (user == null) return string.Empty;
 
-                return user.FindFirstValue(ClaimTypes.NameIdentifier)?? string.Empty;
+                return user.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             }
         }
 
-        // 0 means SuperAdmin (no company)
-        public int CompanyId
+        // null => SuperAdmin (not company-scoped)
+        public int? CompanyId
         {
             get
             {
                 var user = _httpContextAccessor.HttpContext?.User;
-
-                if (user == null) return 0;
+                if (user == null) return null;
 
                 var companyClaim = user.FindFirst("CompanyId");
-
-                if (companyClaim == null) return 0;
+                if (companyClaim == null) return null;
 
                 return int.Parse(companyClaim.Value);
             }
@@ -47,28 +44,17 @@ namespace CompanyProject.Infrastructure.Security
             get
             {
                 var user = _httpContextAccessor.HttpContext?.User;
-
                 if (user == null) return string.Empty;
 
-                return user.FindFirstValue(ClaimTypes.Role)?? string.Empty;
+                return user.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
             }
         }
 
-        public bool IsBlocked
+        public bool IsSuperAdmin
         {
             get
             {
-                var user = _httpContextAccessor.HttpContext?.User;
-
-                if (user == null) return false;
-
-                var lockoutClaim = user.FindFirst("LockoutEnd");
-
-                if (lockoutClaim == null) return false;
-
-                var lockoutEnd = DateTimeOffset.Parse(lockoutClaim.Value);
-
-                return lockoutEnd > DateTimeOffset.UtcNow;
+                return Role == "SuperAdmin";
             }
         }
     }

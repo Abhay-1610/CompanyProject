@@ -9,39 +9,34 @@ namespace CompanyProject.Infrastructure.Security;
 
 public sealed class JwtTokenService : IJwtTokenService
 {
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration _config;
 
-    public JwtTokenService(IConfiguration configuration)
+    public JwtTokenService(IConfiguration config)
     {
-        _configuration = configuration;
+        _config = config;
     }
 
     public string GenerateToken(UserDto user, IList<string> roles)
     {
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id),
-            new(JwtRegisteredClaimNames.Email, user.Email),
-            new("UserId", user.Id),
-            new("CompanyId", user.CompanyId?.ToString() ?? ""),
-            new("IsBlocked", user.IsBlocked.ToString())
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim("CompanyId", user.CompanyId?.ToString() ?? string.Empty)
         };
 
         foreach (var role in roles)
             claims.Add(new Claim(ClaimTypes.Role, role));
 
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]!)
+        );
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
-                int.Parse(_configuration["Jwt:ExpiryMinutes"]!)),
-            signingCredentials: creds
+            expires: DateTime.UtcNow.AddMinutes(60),
+            signingCredentials: new SigningCredentials(
+                key, SecurityAlgorithms.HmacSha256)
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);

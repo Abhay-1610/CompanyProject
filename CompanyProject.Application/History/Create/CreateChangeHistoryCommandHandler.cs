@@ -27,7 +27,7 @@ namespace CompanyProject.Application.History.Create
         {
             var history = new ChangeHistory
             {
-                CompanyId = _currentUser.CompanyId,
+                CompanyId = _currentUser.CompanyId ?? throw new UnauthorizedAccessException(),
                 ProjectId = request.ProjectId,
                 ChangeType = request.ChangeType,
                 OldData = request.OldData,
@@ -41,7 +41,7 @@ namespace CompanyProject.Application.History.Create
 
             // 2️⃣ Notify company users in real-time
             await _realtimeNotifier.NotifyCompanyAsync(
-                _currentUser.CompanyId,
+                _currentUser.CompanyId ?? throw new UnauthorizedAccessException(),
                 "AuditChanged",
                 request.ProjectId);
         }

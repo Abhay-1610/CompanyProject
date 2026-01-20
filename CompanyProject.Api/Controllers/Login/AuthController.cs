@@ -20,8 +20,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequestDto request)
     {
-        var token = await _mediator.Send(
-            new LoginCommand(request.Email, request.Password));
+        var token = await _mediator.Send(new LoginCommand(request.Email, request.Password));
 
         return Ok(new { accessToken = token });
     }

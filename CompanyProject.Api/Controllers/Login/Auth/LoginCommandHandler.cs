@@ -40,6 +40,9 @@ public sealed class LoginCommandHandler
         if (!result.Succeeded)
             throw new UnauthorizedAccessException("Invalid credentials");
 
+        //await _userManager.AddToRoleAsync(user, "SuperAdmin");
+
+
         var roles = await _userManager.GetRolesAsync(user);
 
         var userDto = new UserDto

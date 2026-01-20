@@ -18,11 +18,10 @@ namespace CompanyProject.Api.Controllers.ChangeHistory
         }
 
         [HttpGet]
-        [Authorize(Roles = "CompanyAdmin")]
+        [Authorize(Roles = "SuperAdmin,CompanyAdmin")]
         public async Task<IActionResult> Get()
         {
             var result = await _mediator.Send(new GetCompanyAuditQuery());
-
             return Ok(result);
         }
     }

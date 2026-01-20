@@ -23,7 +23,7 @@ namespace CompanyProject.Application.Projects.GetProjects
             CancellationToken cancellationToken)
         {
             return await _projectRepository
-                .GetByCompanyIdAsync(_currentUser.CompanyId);
+                .GetByCompanyIdAsync(_currentUser.CompanyId ?? throw new UnauthorizedAccessException());
         }
     }
 }

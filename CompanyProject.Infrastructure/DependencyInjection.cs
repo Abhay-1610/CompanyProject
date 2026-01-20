@@ -17,6 +17,7 @@ namespace CompanyProject.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IChangeHistoryRepository, ChangeHistoryRepository>();
             services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<ICurrentUser, CurrentUserService>();
             services.AddHttpContextAccessor();
 

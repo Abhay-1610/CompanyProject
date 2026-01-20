@@ -1,5 +1,5 @@
 ﻿using CompanyProject.Application.Interfaces;
-using CompanyProject.Application;
+using CompanyProject.Domain.Entities;
 using CompanyProject.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,66 +15,53 @@ namespace CompanyProject.Infrastructure.Repositories
             _userManager = userManager;
         }
 
-        // CREATE USER
-        public async Task AddAsync(
-            string email,
-            string password,
-            int companyId,
-            string role)
+  
+        public async Task AddAsync(string email,string password,int companyId,string role)
         {
             var user = new ApplicationUser
             {
                 UserName = email,
                 Email = email,
-                CompanyId = companyId == 0 ? null : companyId
+                CompanyId = companyId
             };
 
             await _userManager.CreateAsync(user, password);
             await _userManager.AddToRoleAsync(user, role);
         }
 
-        // GET USER BY ID
         public async Task<UserDto?> GetByIdAsync(string userId)
         {
-            var user = await _userManager.Users
-                .FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
-            if (user == null)
-                return null;
+            if (user == null) return null;
 
             return new UserDto
             {
                 Id = user.Id,
                 Email = user.Email ?? string.Empty,
-                CompanyId = user.CompanyId ?? 0,
-                IsBlocked = user.LockoutEnd.HasValue &&
-                            user.LockoutEnd > DateTimeOffset.UtcNow
+                CompanyId = user.CompanyId,
+                IsBlocked = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow
             };
         }
 
-        // GET USERS BY COMPANY
         public async Task<List<UserDto>> GetByCompanyIdAsync(int companyId)
         {
-            return await _userManager.Users
-                .Where(u => u.CompanyId == companyId)
-                .Select(u => new UserDto
+            return await _userManager.Users.Where(u => u.CompanyId == companyId).Select(u => 
+            new UserDto
                 {
                     Id = u.Id,
                     Email = u.Email ?? string.Empty,
-                    CompanyId = u.CompanyId ?? 0,
+                    CompanyId = u.CompanyId,
                     IsBlocked = u.LockoutEnd.HasValue &&
                                 u.LockoutEnd > DateTimeOffset.UtcNow
-                })
-                .ToListAsync();
+                }).ToListAsync();
         }
 
-        // UPDATE USER EMAIL
+        
         public async Task UpdateAsync(string userId, string email)
         {
             var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-                return;
+            if (user == null) return;
 
             user.Email = email;
             user.UserName = email;
@@ -82,37 +69,31 @@ namespace CompanyProject.Infrastructure.Repositories
             await _userManager.UpdateAsync(user);
         }
 
-        // DELETE USER
+        
         public async Task DeleteAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-                return;
+            if (user == null) return;
 
             await _userManager.DeleteAsync(user);
         }
 
-        // BLOCK USER
+        
         public async Task BlockAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-                return;
+            if (user == null) return;
 
             await _userManager.SetLockoutEndDateAsync(
                 user,
                 DateTimeOffset.MaxValue);
         }
 
-        // UNBLOCK USER
+        
         public async Task UnblockAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-                return;
+            if (user == null) return;
 
             await _userManager.SetLockoutEndDateAsync(user, null);
         }

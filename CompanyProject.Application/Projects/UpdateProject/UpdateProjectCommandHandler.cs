@@ -35,8 +35,8 @@ namespace CompanyProject.Application.Projects.UpdateProject
             if (project == null)
                 throw new Exception("Project not found");
 
-            if (_currentUser.IsBlocked)
-                throw new Exception("Operation blocked. Contact your Company Admin.");
+            //if (_currentUser.IsBlocked)
+            //    throw new Exception("Operation blocked. Contact your Company Admin.");
 
             if (project.CompanyId != _currentUser.CompanyId)
                 throw new Exception("Access denied");

@@ -23,8 +23,7 @@ namespace CompanyProject.Application.History.GetCompanyAudit
             GetCompanyAuditQuery request,
             CancellationToken cancellationToken)
         {
-            return await _repository
-                .GetByCompanyIdAsync(_currentUser.CompanyId);
+            return await _repository.GetByCompanyIdAsync(_currentUser.CompanyId ?? throw new UnauthorizedAccessException());
         }
     }
 }

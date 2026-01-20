@@ -1,4 +1,4 @@
-﻿using CompanyProject.Application.Interfaces;
+﻿  using CompanyProject.Application.Interfaces;
 using CompanyProject.Domain.Entities;
 using CompanyProject.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

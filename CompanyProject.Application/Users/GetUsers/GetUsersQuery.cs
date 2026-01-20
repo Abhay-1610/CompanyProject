@@ -6,5 +6,6 @@ namespace CompanyProject.Application.Users.GetUsers
 {
     public class GetUsersQuery : IRequest<List<UserDto>>
     {
+        public int? CompanyId { get; set; }
     }
 }
