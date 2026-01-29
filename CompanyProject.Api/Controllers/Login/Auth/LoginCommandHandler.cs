@@ -1,60 +1,69 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using CompanyProject.Application.Interfaces;
-using CompanyProject.Domain.Entities;
 using CompanyProject.Infrastructure.Data;
+using CompanyProject.Application.Common.Dtos;
+using CompanyProject.Application.Common.Security;
 
 namespace CompanyProject.Api.Login.Auth;
 
 public sealed class LoginCommandHandler
-    : IRequestHandler<LoginCommand, string>
+    : IRequestHandler<LoginCommand, AuthResponseDto>
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IConfiguration _config;
 
     public LoginCommandHandler(
         UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
-        IJwtTokenService jwtTokenService)
+        IJwtTokenService jwtTokenService,
+        IConfiguration config)
     {
         _userManager = userManager;
-        _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
+        _config = config;
     }
 
-    public async Task<string> Handle(
+    public async Task<AuthResponseDto> Handle(
         LoginCommand request,
         CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user.LockoutEnd.HasValue &&
-          user.LockoutEnd.Value > DateTimeOffset.UtcNow)
-        {
-            throw new UnauthorizedAccessException("User is blocked");
-        }
 
-        var result = await _signInManager.CheckPasswordSignInAsync(
-            user, request.Password, false);
+        if (user == null)
+            throw new UnauthorizedAccessException("Invalid Email");
 
-        if (!result.Succeeded)
-            throw new UnauthorizedAccessException("Invalid credentials");
+        var validPassword =
+            await _userManager.CheckPasswordAsync(user, request.Password);
 
-        //await _userManager.AddToRoleAsync(user, "SuperAdmin");
+        if (!validPassword)
+            throw new UnauthorizedAccessException("Invalid Password");
 
 
-        var roles = await _userManager.GetRolesAsync(user);
+        var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
 
         var userDto = new UserDto
         {
             Id = user.Id,
             Email = user.Email!,
-            CompanyId = user.CompanyId,
-           IsBlocked = user.LockoutEnd.HasValue
-            && user.LockoutEnd.Value > DateTimeOffset.UtcNow
-
+            CompanyId = user.CompanyId
         };
 
-        return _jwtTokenService.GenerateToken(userDto, roles);
+        // access token
+        var accessToken =  _jwtTokenService.GenerateToken(userDto, role!);
+
+        // refresh token
+        var refreshToken = RefreshTokenGenerator.Generate();
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime =  DateTime.UtcNow.AddDays(int.Parse(_config["Jwt:RefreshTokenDays"]!));
+
+        await _userManager.UpdateAsync(user);
+
+        return new AuthResponseDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
     }
 }

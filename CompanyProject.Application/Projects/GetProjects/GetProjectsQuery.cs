@@ -6,5 +6,6 @@ namespace CompanyProject.Application.Projects.GetProjects
 {
     public class GetProjectsQuery : IRequest<List<Project>>
     {
+        public int? CompanyId { get; set; }
     }
 }

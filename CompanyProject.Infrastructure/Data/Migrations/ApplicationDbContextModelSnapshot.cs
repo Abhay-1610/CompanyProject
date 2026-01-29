@@ -41,8 +41,15 @@ namespace CompanyProject.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CompanyId")
+                    b.Property<string>("ChangedByEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CompanyId")
                         .HasColumnType("int");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NewData")
                         .HasColumnType("nvarchar(max)");
@@ -50,8 +57,12 @@ namespace CompanyProject.Infrastructure.Migrations
                     b.Property<string>("OldData")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ProjectId")
+                    b.Property<int?>("ProjectId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ProjectName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ChangeId");
 
@@ -127,7 +138,7 @@ namespace CompanyProject.Infrastructure.Migrations
                     b.ToTable("Projects");
                 });
 
-            modelBuilder.Entity("CompanyProject.Infrastructure.ApplicationUser", b =>
+            modelBuilder.Entity("CompanyProject.Infrastructure.Data.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -171,6 +182,12 @@ namespace CompanyProject.Infrastructure.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -332,21 +349,15 @@ namespace CompanyProject.Infrastructure.Migrations
 
             modelBuilder.Entity("CompanyProject.Domain.Entities.ChangeHistory", b =>
                 {
-                    b.HasOne("CompanyProject.Domain.Entities.Company", "Company")
+                    b.HasOne("CompanyProject.Domain.Entities.Company", null)
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("CompanyProject.Domain.Entities.Project", "Project")
+                    b.HasOne("CompanyProject.Domain.Entities.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Company");
-
-                    b.Navigation("Project");
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("CompanyProject.Domain.Entities.Project", b =>
@@ -360,7 +371,7 @@ namespace CompanyProject.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("CompanyProject.Infrastructure.ApplicationUser", b =>
+            modelBuilder.Entity("CompanyProject.Infrastructure.Data.ApplicationUser", b =>
                 {
                     b.HasOne("CompanyProject.Domain.Entities.Company", "Company")
                         .WithMany()
@@ -380,7 +391,7 @@ namespace CompanyProject.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("CompanyProject.Infrastructure.ApplicationUser", null)
+                    b.HasOne("CompanyProject.Infrastructure.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -389,7 +400,7 @@ namespace CompanyProject.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("CompanyProject.Infrastructure.ApplicationUser", null)
+                    b.HasOne("CompanyProject.Infrastructure.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -404,7 +415,7 @@ namespace CompanyProject.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CompanyProject.Infrastructure.ApplicationUser", null)
+                    b.HasOne("CompanyProject.Infrastructure.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -413,7 +424,7 @@ namespace CompanyProject.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("CompanyProject.Infrastructure.ApplicationUser", null)
+                    b.HasOne("CompanyProject.Infrastructure.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -1,4 +1,5 @@
 ﻿
+using CompanyProject.Application.Common.Dtos;
 using CompanyProject.Application.Interfaces;
 using CompanyProject.Domain.Entities;
 using FluentValidation;
@@ -6,7 +7,7 @@ using MediatR;
 
 namespace CompanyProject.Application.Companies.CreateCompany
 {
-    public class CreateCompanyCommandHandler:IRequestHandler<CreateCompanyCommand , int>
+    public class CreateCompanyCommandHandler:IRequestHandler<CreateCompanyCommand , CompanyDto>
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly IValidator<CreateCompanyCommand> _validator;
@@ -16,9 +17,12 @@ namespace CompanyProject.Application.Companies.CreateCompany
             _validator = validator;
         }
 
-        public async Task<int> Handle(CreateCompanyCommand request, CancellationToken cancellationToken)
+        public async Task<CompanyDto> Handle(CreateCompanyCommand request, CancellationToken cancellationToken)
         {
-            await _validator.ValidateAsync(request, cancellationToken);
+             var exists = await _companyRepository.CompanyNameExistsAsync(request.CompanyName);
+         if (exists)
+        throw new InvalidOperationException("Company with this name already exists.");
+
             var company = new Company
             {
                 CompanyName = request.CompanyName,
@@ -28,7 +32,13 @@ namespace CompanyProject.Application.Companies.CreateCompany
 
             await _companyRepository.AddAsync(company);
 
-            return company.CompanyId;
+            return new CompanyDto
+            {
+                CompanyId = company.CompanyId,
+                CompanyName = request.CompanyName,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
         }
     }
 }

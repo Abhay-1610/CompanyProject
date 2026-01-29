@@ -13,5 +13,8 @@ namespace CompanyProject.Application.Interfaces
         Task UpdateAsync(Project project);             // Update Project
 
         Task DeleteAsync(Project project);             // Delete Project
+
+        Task<bool> ProjectNameExistsAsync(string projectName, int companyId,int? excludeProjectId = null);
+
     }
 }

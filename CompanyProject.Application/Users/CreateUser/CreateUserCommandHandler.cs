@@ -1,10 +1,11 @@
-﻿using CompanyProject.Application.Interfaces;
+﻿using CompanyProject.Application.Common.Dtos;
+using CompanyProject.Application.Interfaces;
 using MediatR;
 
 namespace CompanyProject.Application.Users.CreateUser
 {
     public class CreateUserCommandHandler
-        : IRequestHandler<CreateUserCommand, string>
+        : IRequestHandler<CreateUserCommand, UserDto>
     {
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUser _currentUser;
@@ -17,38 +18,35 @@ namespace CompanyProject.Application.Users.CreateUser
             _currentUser = currentUser;
         }
 
-        public async Task<string> Handle(
+        public async Task<UserDto> Handle(
             CreateUserCommand request,
             CancellationToken cancellationToken)
         {
-            // 🔒 SuperAdmin → can create ONLY CompanyAdmin
-            if (_currentUser.IsSuperAdmin)
-            {
-                await _userRepository.AddAsync(
-                    request.Email,
-                    request.Password,
-                    request.CompanyId.Value,
-                    request.Role
-                );
 
-                return request.Email;
-            }
-
-            // 🔒 CompanyAdmin → can create ONLY normal users (same company)
-            if (request.Role != "CompanyUser")
+            var emailExists = await _userRepository.EmailExistsAsync(request.Email);
+            if (emailExists)
+                throw new UnauthorizedAccessException("User with this email already exists.");
+            // 🔐 CompanyAdmin restriction
+            if (!_currentUser.IsSuperAdmin && request.Role != "CompanyUser")
                 throw new UnauthorizedAccessException();
 
-            var companyId = _currentUser.CompanyId
-                ?? throw new UnauthorizedAccessException();
-
-            await _userRepository.AddAsync(
+            var user = await _userRepository.AddAsync(
                 request.Email,
                 request.Password,
-                companyId,
+                _currentUser.IsSuperAdmin
+                    ? request.CompanyId
+                    : _currentUser.CompanyId!.Value,
                 request.Role
             );
 
-            return request.Email;
+            return new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email!,
+                Role = request.Role,
+                CompanyId = user.CompanyId,
+                IsBlocked = false
+            };
         }
     }
 }

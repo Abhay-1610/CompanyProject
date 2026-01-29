@@ -6,6 +6,6 @@ public sealed class CreateCompanyCommandValidator
 {
     public CreateCompanyCommandValidator()
     {
-        RuleFor(x => x.CompanyName).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.CompanyName).NotEmpty().MaximumLength(10);
     }
 }

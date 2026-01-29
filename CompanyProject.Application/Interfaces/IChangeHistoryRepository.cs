@@ -10,5 +10,6 @@ namespace CompanyProject.Application.History
         Task AddAsync(ChangeHistory history);
 
         Task<List<ChangeHistory>> GetByCompanyIdAsync(int companyId);
+        Task<List<ChangeHistory>> GetAllHistory();
     }
 }

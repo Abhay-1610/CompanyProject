@@ -19,23 +19,21 @@ namespace CompanyProject.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            // Explicit PK (THIS FIXES YOUR ERROR)
             modelBuilder.Entity<ChangeHistory>()
                 .HasKey(ch => ch.ChangeId);
 
-            // Explicit relationships (recommended with Identity)
             modelBuilder.Entity<ChangeHistory>()
-                .HasOne(ch => ch.Company)
-                .WithMany()
-                .HasForeignKey(ch => ch.CompanyId)
-                .OnDelete(DeleteBehavior.Restrict);
+           .HasOne<Company>()
+           .WithMany()
+           .HasForeignKey(ch => ch.CompanyId)
+           .OnDelete(DeleteBehavior.NoAction);
 
+            // 🔴 IMPORTANT: NO CASCADE FROM PROJECT
             modelBuilder.Entity<ChangeHistory>()
-                .HasOne(ch => ch.Project)
+                .HasOne<Project>()
                 .WithMany()
                 .HasForeignKey(ch => ch.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

@@ -1,10 +1,14 @@
 ﻿using CompanyProject.Api.Login.Auth;
 using CompanyProject.Application;
+using CompanyProject.Application.Common.Behaviors;
 using CompanyProject.Infrastructure;
 using CompanyProject.Infrastructure.Data;
 using CompanyProject.Infrastructure.Security;
+using CompanyProject.Infrastructure.SignalR;
 using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,38 +17,53 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// ======================================================
+// Core MVC / API Services
+// ======================================================
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//*******************************************************************************************************
+// ======================================================
+// Database (EF Core)
+// ======================================================
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
+// ======================================================
+// Identity (Users & Roles)
+// ======================================================
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+// ======================================================
 // MediatR
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyReference).Assembly));
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginCommandHandler).Assembly));
+// ======================================================
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(AssemblyReference).Assembly));
 
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(LoginCommandHandler).Assembly));
 
-// Infrastructure (Repositories + SignalR Notifier)
+// ======================================================
+// FluentValidation Pipeline
+// ======================================================
+builder.Services.AddTransient(
+    typeof(IPipelineBehavior<,>),
+    typeof(ValidationBehavior<,>)
+);
+
+// ======================================================
+// Infrastructure Layer (Repositories, Security, etc.)
+// ======================================================
 builder.Services.AddInfrastructure();
 
-
-// SignalR
-builder.Services.AddSignalR();
-
-//*******************************************************************************************************
-// =======================
+// ======================================================
 // JWT Authentication
-// =======================
+// ======================================================
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -65,7 +84,7 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false
     };
 
-    // ✅ Required for SignalR (JWT via query string)
+    // Required for SignalR JWT over query string
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -82,17 +101,22 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
-//*******************************************************************************************************
 
-builder.Services.AddValidatorsFromAssembly(         // for fluent validation 
+// ======================================================
+// FluentValidation Registration
+// ======================================================
+builder.Services.AddValidatorsFromAssembly(
     typeof(AssemblyReference).Assembly
 );
 
-builder.Services.AddScoped<RoleSeeder>();              // added once for role Seeding
+// ======================================================
+// Role Seeder
+// ======================================================
+builder.Services.AddScoped<RoleSeeder>();
 
-
-//*******************************************************************************************************
-
+// ======================================================
+// Swagger JWT Configuration
+// ======================================================
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -120,18 +144,79 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-//*******************************************************************************************************
+
+// ======================================================
+// CORS (Frontend)
+// ======================================================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendCors", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+// ======================================================
+// SignalR
+// ======================================================
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
+// ======================================================
+// Global Exception Handling
+// ======================================================
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exception = context.Features
+            .Get<IExceptionHandlerFeature>()?.Error;
+
+        context.Response.ContentType = "application/json";
+
+        // FluentValidation errors
+        if (exception is FluentValidation.ValidationException ve)
+        {
+            context.Response.StatusCode = 400;
+            await context.Response.WriteAsJsonAsync(
+                ve.Errors.Select(e => e.ErrorMessage)
+            );
+            return;
+        }
+
+        // Unauthorized / blocked user
+        if (exception is UnauthorizedAccessException)
+        {
+            context.Response.StatusCode = 403;
+            await context.Response.WriteAsJsonAsync(exception.Message);
+            return;
+        }
+
+        // Unhandled errors
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(exception.Message);
+    });
+});
+
+// ======================================================
+// Role Seeding (Runs once on startup)
+// ======================================================
 using (var scope = app.Services.CreateScope())
 {
-    var roleSeeder = scope.ServiceProvider.GetRequiredService<RoleSeeder>();       // added once for role Seeding
+    var roleSeeder =
+        scope.ServiceProvider.GetRequiredService<RoleSeeder>();
+
     await roleSeeder.SeedAsync();
 }
 
-
-// Configure the HTTP request pipeline.
+// ======================================================
+// HTTP Pipeline
+// ======================================================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -139,10 +224,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();    //
+
+app.UseCors("FrontendCors");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
+// ======================================================
+// Endpoints
+// ======================================================
 app.MapControllers();
-app.UseAuthentication();     //
+
+app.MapHub<CompanyHub>("/hubs/company"); // SignalR hub
 
 app.Run();

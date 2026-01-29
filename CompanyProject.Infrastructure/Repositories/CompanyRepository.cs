@@ -46,5 +46,12 @@ namespace CompanyProject.Infrastructure.Repositories
             _context.Companies.Remove(company);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<bool> CompanyNameExistsAsync(string companyName)
+        {
+            return await _context.Companies
+                .AnyAsync(c => c.CompanyName == companyName);
+        }
+
     }
 }

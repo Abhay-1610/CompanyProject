@@ -1,4 +1,5 @@
-﻿using CompanyProject.Application.Interfaces;
+﻿using CompanyProject.Application.Common.Dtos;
+using CompanyProject.Application.Interfaces;
 using MediatR;
 using System.Collections.Generic;
 
@@ -29,11 +30,11 @@ namespace CompanyProject.Application.Users.GetUsers
             }
 
             // 🔒 CompanyAdmin → company comes from token
-            var companyId = _currentUser.CompanyId
-                ?? throw new UnauthorizedAccessException();
+            //var companyId = _currentUser.CompanyId
+            //    ?? throw new UnauthorizedAccessException();
 
             return await _userRepository
-                .GetByCompanyIdAsync(companyId);
+                .GetByCompanyIdAsync(request.CompanyId.Value);
         }
     }
 }

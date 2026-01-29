@@ -37,12 +37,12 @@ namespace CompanyProject.Application.Users.DeleteUser
             }
 
             // 🔒 CompanyAdmin → can delete ONLY users of own company
-            var companyId = _currentUser.CompanyId
-                ?? throw new UnauthorizedAccessException();
+            //var companyId = _currentUser.CompanyId
+            //    ?? throw new UnauthorizedAccessException();
 
-            var targetUser = await _userRepository.GetByIdAsync(request.UserId);
-            if (targetUser == null || targetUser.CompanyId != companyId)
-                throw new UnauthorizedAccessException();
+            //var targetUser = await _userRepository.GetByIdAsync(request.UserId);
+            //if (targetUser == null || targetUser.CompanyId != companyId)
+            //    throw new UnauthorizedAccessException();
 
             await _userRepository.DeleteAsync(request.UserId);
         }

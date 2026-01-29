@@ -1,8 +1,18 @@
-﻿using CompanyProject.Application.Interfaces;
+﻿using CompanyProject.Application.Common.Dtos;
 
 public interface IUserRepository
 {
-    Task AddAsync(string email, string password, int companyId, string role);
+    Task<UserDto> AddAsync(
+     string email,
+     string password,
+     int companyId,
+     string role
+ );
+    Task<bool> EmailExistsAsync(string email, string userId);
+    Task<bool> EmailExistsAsync(string email);
+
+    Task<bool> IsUserBlockedAsync(string userId);
+    Task ToggleBlockAsync(string userId);
 
     Task<UserDto?> GetByIdAsync(string userId);
 

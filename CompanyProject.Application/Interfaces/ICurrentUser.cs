@@ -7,9 +7,11 @@
 
         // null => SuperAdmin (not company-scoped)
         int? CompanyId { get; }
+        string? CompanyName { get; }
 
         string Role { get; }
 
         bool IsSuperAdmin { get; }
+        string? Email { get; }
     }
 }

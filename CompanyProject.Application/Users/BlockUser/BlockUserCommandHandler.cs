@@ -18,28 +18,12 @@ namespace CompanyProject.Application.Users.BlockUser
         }
 
         public async Task Handle(
-            BlockUserCommand request,
-            CancellationToken cancellationToken)
+    BlockUserCommand request,
+    CancellationToken cancellationToken)
         {
-            // 🔒 CompanyAdmin only
-            if (_currentUser.IsSuperAdmin)
-                throw new UnauthorizedAccessException();
-
-            var companyId = _currentUser.CompanyId
-                ?? throw new UnauthorizedAccessException();
-
-            var targetUser = await _userRepository.GetByIdAsync(request.UserId);
-            if (targetUser == null || targetUser.CompanyId != companyId)
-                throw new UnauthorizedAccessException();
-
-            if (request.IsBlocked)
-            {
-                await _userRepository.BlockAsync(request.UserId);
-            }
-            else
-            {
-                await _userRepository.UnblockAsync(request.UserId);
-            }
+            await _userRepository.ToggleBlockAsync(request.UserId);
         }
+
+
     }
 }

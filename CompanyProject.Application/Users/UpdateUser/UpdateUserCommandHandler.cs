@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using CompanyProject.Application.Interfaces;
+using CompanyProject.Application.Common.Dtos;
 
 namespace CompanyProject.Application.Users.UpdateUser
 {
     public class UpdateUserCommandHandler
-        : IRequestHandler<UpdateUserCommand>
+        : IRequestHandler<UpdateUserCommand , UserDto>
     {
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUser _currentUser;
@@ -17,14 +18,19 @@ namespace CompanyProject.Application.Users.UpdateUser
             _currentUser = currentUser;
         }
 
-        public async Task Handle(
+        public async Task<UserDto> Handle(
             UpdateUserCommand request,
             CancellationToken cancellationToken)
         {
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+
+            var emailExists = await _userRepository.EmailExistsAsync(request.Email, request.UserId);
+            if (emailExists)
+                throw new UnauthorizedAccessException("User with this email already exists.");
+
             // 🔒 SuperAdmin: can update ONLY CompanyAdmins
             if (_currentUser.IsSuperAdmin)
             {
-                var user = await _userRepository.GetByIdAsync(request.UserId);
                 if (user == null)
                     throw new UnauthorizedAccessException();
 
@@ -36,20 +42,28 @@ namespace CompanyProject.Application.Users.UpdateUser
                     request.UserId,
                     request.Email);
 
-                return;
+                return new UserDto
+                {
+                    CompanyId = user.CompanyId,
+                    Email = request.Email,
+                    Id = user.Id,
+                    Role = request.Role,
+                    IsBlocked = user.IsBlocked
+                };
             }
-
-            // 🔒 CompanyAdmin: can update ONLY users of own company
-            var companyId = _currentUser.CompanyId
-                ?? throw new UnauthorizedAccessException();
-
-            var targetUser = await _userRepository.GetByIdAsync(request.UserId);
-            if (targetUser == null || targetUser.CompanyId != companyId)
-                throw new UnauthorizedAccessException();
 
             await _userRepository.UpdateAsync(
                 request.UserId,
                 request.Email);
+
+            return new UserDto
+            {
+                CompanyId = user.CompanyId,
+                Email = user.Email,
+                Id = user.Id,
+                Role = request.Role,
+                IsBlocked = user.IsBlocked
+            };
         }
     }
 }

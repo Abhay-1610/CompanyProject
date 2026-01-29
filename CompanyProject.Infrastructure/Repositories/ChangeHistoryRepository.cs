@@ -26,9 +26,21 @@ namespace CompanyProject.Infrastructure.Repositories
         public async Task<List<ChangeHistory>> GetByCompanyIdAsync(int companyId)
         {
             return await _context.ChangeHistories
+                //.Include(h => h.Company)
+                //.Include(h => h.Project)
                 .Where(h => h.CompanyId == companyId)
                 .OrderByDescending(h => h.ChangedAt)
                 .ToListAsync();
         }
+
+        public async Task<List<ChangeHistory>> GetAllHistory()
+        {
+            return await _context.ChangeHistories
+                //.Include(h => h.Company)
+                //.Include(h => h.Project)
+                .OrderByDescending(h => h.ChangedAt)
+                .ToListAsync();
+        }
+
     }
 }

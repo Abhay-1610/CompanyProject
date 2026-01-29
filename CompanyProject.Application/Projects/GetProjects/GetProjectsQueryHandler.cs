@@ -19,11 +19,26 @@ namespace CompanyProject.Application.Projects.GetProjects
         }
 
         public async Task<List<Project>> Handle(
-            GetProjectsQuery request,
-            CancellationToken cancellationToken)
+    GetProjectsQuery request,
+    CancellationToken cancellationToken)
         {
-            return await _projectRepository
-                .GetByCompanyIdAsync(_currentUser.CompanyId ?? throw new UnauthorizedAccessException());
+            int companyId;
+
+            if (_currentUser.Role=="SuperAdmin")
+            {
+                // SuperAdmin MUST send companyId explicitly
+                companyId = request.CompanyId
+                    ?? throw new ArgumentException("CompanyId is required for SuperAdmin");
+            }
+            else
+            {
+                // CompanyAdmin / CompanyUser → always from token
+                companyId = _currentUser.CompanyId
+                    ?? throw new UnauthorizedAccessException();
+            }
+
+            return await _projectRepository.GetByCompanyIdAsync(companyId);
         }
+
     }
 }

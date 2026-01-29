@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using System.Collections.Generic;
-using CompanyProject.Application.Interfaces;
+using CompanyProject.Application.Common.Dtos;
 
 namespace CompanyProject.Application.Users.GetUsers
 {
