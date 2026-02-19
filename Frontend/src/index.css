@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+/* NORMAL TEXT — no caret */
+body *:not(input):not(textarea) {
+  caret-color: transparent;
+}
+
+/* INPUTS — caret MUST be visible */
+input,
+textarea {
+  caret-color: auto;
+  cursor: text;
+}
+
+/* CLICKABLE UI */
+button,
+a,
+[role="button"] {
+  cursor: pointer;
+}
+
+/* DEFAULT */
+body {
+  cursor: default;
+}
