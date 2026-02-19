@@ -1,4 +1,5 @@
-﻿using CompanyProject.Api.Login.Auth;
+﻿using CompanyProject.Api;
+using CompanyProject.Api.Login.Auth;
 using CompanyProject.Application;
 using CompanyProject.Application.Common.Behaviors;
 using CompanyProject.Infrastructure;
@@ -160,6 +161,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+//'The CORS protocol does not allow specifying a wildcard (any) origin and credentials at the same time. Configure the CORS policy by listing individual origins if credentials needs to be supported.'
+
 // ======================================================
 // SignalR
 // ======================================================
@@ -224,10 +227,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("FrontendCors");
 
-app.UseAuthentication();
+//app.UseMiddleware<AllowedPortMiddleware>();
+
+
+ app.UseAuthentication();
 app.UseAuthorization();
 
 // ======================================================

@@ -22,6 +22,29 @@ namespace CompanyProject.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AllowedPort", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Port")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AllowedPorts");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Port = 3000
+                        });
+                });
+
             modelBuilder.Entity("CompanyProject.Domain.Entities.ChangeHistory", b =>
                 {
                     b.Property<int>("ChangeId")

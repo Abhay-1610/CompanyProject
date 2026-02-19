@@ -19,6 +19,7 @@ namespace CompanyProject.Infrastructure
             services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<ICurrentUser, CurrentUserService>();
+            services.AddScoped<IAllowedPortRepository, AllowedPortRepository>();
             services.AddHttpContextAccessor();
 
             return services;

@@ -15,10 +15,33 @@ namespace CompanyProject.Infrastructure.Data
         public DbSet<Company> Companies { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<ChangeHistory> ChangeHistories { get; set; }
+        public DbSet<AllowedPort> AllowedPorts { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AllowedPort>().HasData(
+                 new AllowedPort
+                 {
+                     Id = 1,
+                     Port = 3000
+                 }
+             );
+
+
+
+
+
+
+
+
+
+
+
+
+
             modelBuilder.Entity<ChangeHistory>()
                 .HasKey(ch => ch.ChangeId);
 
